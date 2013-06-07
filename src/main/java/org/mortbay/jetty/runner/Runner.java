@@ -84,6 +84,9 @@ public class Runner
     protected URLClassLoader _classLoader;
     protected List<URL> _classpath=new ArrayList<URL>();
     protected ContextHandlerCollection _contexts;
+    protected String _contextPath="/";
+    protected boolean _contextPathSet=false;
+    protected String _contextArg;
     protected RequestLogHandler _logHandler;
     protected String _logFile;
     protected String _configFile;
@@ -180,8 +183,6 @@ public class Runner
         LOG.info("Runner");
         LOG.debug("Runner classpath {}",_classpath);
 
-        String contextPath="/";
-        boolean contextPathSet=false;
         int port=8080;
         int stopPort=0;
         String stopKey=null;
@@ -209,8 +210,8 @@ public class Runner
             }
             else if ("--path".equals(args[i]))
             {
-                contextPath=args[++i];
-                contextPathSet=true;
+                _contextPath=args[++i];
+                _contextPathSet=true;
             }
             else if ("--config".equals(args[i]))
             {
@@ -358,7 +359,8 @@ public class Runner
                 }
 
                 // Create a context
-                Resource ctx = Resource.newResource(args[i]);
+                _contextArg = args[i];
+                Resource ctx = Resource.newResource(_contextArg);
                 if (!ctx.exists())
                     usage("Context '"+ctx+"' does not exist");
 
@@ -370,23 +372,25 @@ public class Runner
                     xmlConfiguration.getIdMap().put("Server",_server);
                     ContextHandler handler=(ContextHandler)xmlConfiguration.configure();
                     _contexts.addHandler(handler);
-                    if (contextPathSet)
-                        handler.setContextPath(contextPath);
+                    if (_contextPathSet)
+                        handler.setContextPath(_contextPath);
                     handler.setAttribute("org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern",
                                          __containerIncludeJarPattern);
                 }
+                /*
                 else
                 {
                     // assume it is a WAR file
-                    if (contextPathSet && !(contextPath.startsWith("/")))
-                        contextPath = "/"+contextPath;
+                    if (_contextPathSet && !(_contextPath.startsWith("/")))
+                        _contextPath = "/"+_contextPath;
                     
-                    LOG.info("Deploying "+ctx.toString()+" @ "+contextPath);
-                    WebAppContext webapp = new WebAppContext(_contexts,ctx.toString(),contextPath);
+                    LOG.info("Deploying "+ctx.toString()+" @ "+_contextPath);
+                    WebAppContext webapp = new WebAppContext(_contexts,ctx.toString(),_contextPath);
                     webapp.setConfigurationClasses(__plusConfigurationClasses);
                     webapp.setAttribute("org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern",
                                         __containerIncludeJarPattern);
                 }
+                */
             }
         }
 
@@ -611,6 +615,19 @@ public class Runner
             Transaction txMgrResource = new Transaction((UserTransaction)utsClass.newInstance());
         }
     }
+    
+    private void initWebContext() throws Exception {
+        Resource ctx = Resource.newResource(_contextArg);
+        if (_contextPathSet && !(_contextPath.startsWith("/")))
+            _contextPath = "/"+_contextPath;
+        
+        LOG.info("Deploying "+ctx.toString()+" @ "+_contextPath);
+        WebAppContext webapp = new WebAppContext(_contexts,ctx.toString(),_contextPath);
+        webapp.setConfigurationClasses(__plusConfigurationClasses);
+        webapp.setAttribute("org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern",
+                            __containerIncludeJarPattern);
+        webapp.start();
+    }
 
 
     public static void main(String[] args)
@@ -631,6 +648,7 @@ public class Runner
 
             runner.configure(args);
             runner.run();
+            runner.initWebContext();
 
         }
         catch (Exception e)
