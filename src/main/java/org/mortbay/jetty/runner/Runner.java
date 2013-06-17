@@ -378,19 +378,9 @@ public class Runner
                                          __containerIncludeJarPattern);
                 }
                 /*
-                else
-                {
-                    // assume it is a WAR file
-                    if (_contextPathSet && !(_contextPath.startsWith("/")))
-                        _contextPath = "/"+_contextPath;
-                    
-                    LOG.info("Deploying "+ctx.toString()+" @ "+_contextPath);
-                    WebAppContext webapp = new WebAppContext(_contexts,ctx.toString(),_contextPath);
-                    webapp.setConfigurationClasses(__plusConfigurationClasses);
-                    webapp.setAttribute("org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern",
-                                        __containerIncludeJarPattern);
-                }
-                */
+                 * else
+                 * Assume it's a war file and do nothing. War context will be added after server starts and binds.
+                 */
             }
         }
 
@@ -514,6 +504,7 @@ public class Runner
         }
         
         _server.start();
+        initWebContext();
         _server.join();
     }
 
@@ -629,7 +620,6 @@ public class Runner
         webapp.start();
     }
 
-
     public static void main(String[] args)
     {
         Runner runner = new Runner();
@@ -648,8 +638,6 @@ public class Runner
 
             runner.configure(args);
             runner.run();
-            runner.initWebContext();
-
         }
         catch (Exception e)
         {
