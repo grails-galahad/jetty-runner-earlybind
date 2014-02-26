@@ -2,5 +2,12 @@ Manifest-Version: 1.0
 Archiver-Version: Plexus Archiver
 Created-By: Apache Maven
 Built-By: jesse
-Build-Jdk: 1.7.0_09
+Build-Jdk: 1.7.0_25
+Bundle-ManifestVersion: 2
+Bundle-Name: Jetty :: Runner
+Bundle-SymbolicName: ${bundle-symbolic-name}.source;singleton:=true
+Bundle-Vendor: Eclipse.org - Jetty
+Bundle-Version: 9.1.2.v20140210
+Eclipse-SourceBundle: ${bundle-symbolic-name};version="9.1.2.v20140210
+ ";roots:="."
 
